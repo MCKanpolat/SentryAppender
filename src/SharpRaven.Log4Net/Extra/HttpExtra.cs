@@ -1,0 +1,205 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
+
+namespace SharpRaven.Log4Net.Core.Extra
+{
+    public class HttpExtra
+    {
+        private readonly dynamic httpContext;
+
+        private HttpExtra(dynamic httpContext)
+        {
+            this.httpContext = httpContext;
+            Request = GetRequest();
+            Response = GetResponse();
+        }
+
+
+        public static HttpExtra GetHttpExtra()
+        {
+            var context = GetHttpContext();
+            if (context == null)
+                return null;
+
+            return new HttpExtra(context);
+        }
+
+        public object Request { get; private set; }
+        public object Response { get; private set; }
+
+
+        private object GetResponse()
+        {
+            try
+            {
+                return new
+                {
+                    Cookies = Convert(x => x.Response.Cookies, GetValueFromCookieCollection),
+                    Headers = Convert(x => x.Response.Headers),
+                    ContentEncoding = this.httpContext.Response.ContentEncoding.HeaderName,
+                    HeaderEncoding = this.httpContext.Response.HeaderEncoding.HeaderName,
+                    this.httpContext.Response.ContentType,
+                    this.httpContext.Response.Charset,
+                    this.httpContext.Response.Expires,
+                    this.httpContext.Response.ExpiresAbsolute,
+                    this.httpContext.Response.IsClientConnected,
+                    this.httpContext.Response.IsRequestBeingRedirected,
+                    this.httpContext.Response.RedirectLocation,
+                    this.httpContext.Response.SuppressContent,
+                    this.httpContext.Response.TrySkipIisCustomErrors,
+                    Status = new
+                    {
+                        this.httpContext.Response.Status,
+                        Code = this.httpContext.Response.StatusCode,
+                        Description = this.httpContext.Response.StatusDescription,
+                        SubCode = this.httpContext.Response.SubStatusCode,
+                    }
+                };
+            }
+            catch (Exception exception)
+            {
+                return new
+                {
+                    Exception = exception
+                };
+            }
+        }
+
+
+        private object GetRequest()
+        {
+            try
+            {
+                return new
+                {
+                    ServerVariables = Convert(x => x.Request.ServerVariables),
+                    Form = Convert(x => x.Request.Form),
+                    Cookies = Convert(x => x.Request.Cookies, GetValueFromCookieCollection),
+                    Headers = Convert(x => x.Request.Headers),
+                    //Params = Convert(x => x.Request.Params),
+                    ContentEncoding = this.httpContext.Request.ContentEncoding.HeaderName,
+                    this.httpContext.Request.AcceptTypes,
+                    this.httpContext.Request.ApplicationPath,
+                    this.httpContext.Request.ContentType,
+                    this.httpContext.Request.CurrentExecutionFilePath,
+                    this.httpContext.Request.CurrentExecutionFilePathExtension,
+                    this.httpContext.Request.FilePath,
+                    this.httpContext.Request.HttpMethod,
+                    this.httpContext.Request.IsAuthenticated,
+                    this.httpContext.Request.IsLocal,
+                    this.httpContext.Request.IsSecureConnection,
+                    this.httpContext.Request.Path,
+                    this.httpContext.Request.PathInfo,
+                    this.httpContext.Request.PhysicalApplicationPath,
+                    this.httpContext.Request.PhysicalPath,
+                    this.httpContext.Request.QueryString,
+                    this.httpContext.Request.RawUrl,
+                    this.httpContext.Request.TotalBytes,
+                    this.httpContext.Request.Url,
+                    this.httpContext.Request.UserAgent,
+                    User = new
+                    {
+                        Languages = this.httpContext.Request.UserLanguages,
+                        Host = new
+                        {
+                            Address = this.httpContext.Request.UserHostAddress,
+                            Name = this.httpContext.Request.UserHostName,
+                        }
+                    }
+                };
+            }
+            catch (Exception exception)
+            {
+                return new
+                {
+                    Exception = exception
+                };
+            }
+        }
+        public static Assembly[] GetAssemblies()
+        {
+            var assemblies = new List<Assembly>();
+            foreach (ProcessModule module in Process.GetCurrentProcess().Modules)
+            {
+                try
+                {
+                    var assemblyName = AssemblyLoadContext.GetAssemblyName(module.FileName);
+                    var assembly = Assembly.Load(assemblyName);
+                    assemblies.Add(assembly);
+                }
+                catch (BadImageFormatException)
+                {
+                }
+            }
+
+            return assemblies.ToArray();
+        }
+
+        private static dynamic GetHttpContext()
+        {
+            var systemWeb = GetAssemblies()
+                                  .FirstOrDefault(assembly => assembly.FullName.StartsWith("System.Web"));
+
+            if (systemWeb == null)
+                return null;
+
+            var httpContextType = systemWeb.GetExportedTypes()
+                                           .FirstOrDefault(type => type.Name == "HttpContext");
+
+            if (httpContextType == null)
+                return null;
+
+            var currentHttpContextProperty = httpContextType.GetProperty("Current",
+                                                                         BindingFlags.Static | BindingFlags.Public);
+
+            if (currentHttpContextProperty == null)
+                return null;
+
+            return currentHttpContextProperty.GetValue(null, null);
+        }
+
+        private IDictionary<string, string> Convert(Func<dynamic, NameObjectCollectionBase> collectionGetter, Func<NameObjectCollectionBase, object, string> valueFromCollectionGetter = null)
+        {
+            if (httpContext == null)
+                return Enumerable.Empty<string>().ToDictionary(x => x, x => x);
+
+            if (valueFromCollectionGetter == null)
+                valueFromCollectionGetter = (c, key) => ((NameValueCollection)c)[key.ToString()];
+
+            IDictionary<string, string> dictionary = new Dictionary<string, string>();
+
+            try
+            {
+                NameObjectCollectionBase collection = collectionGetter.Invoke(this.httpContext);
+
+                foreach (string key in collection.Keys)
+                {
+                    // NOTE: Ignore these keys as they just add duplicate information. [asbjornu]
+                    if ("ALL_HTTP".Equals(key, StringComparison.OrdinalIgnoreCase) || "ALL_RAW".Equals(key, StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var value = valueFromCollectionGetter(collection, key);
+                    dictionary.Add(key.ToString(), value);
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine(exception);
+            }
+
+            return dictionary;
+        }
+
+        private string GetValueFromCookieCollection(NameObjectCollectionBase cookieCollection, object key)
+        {
+            return ((dynamic)cookieCollection)[key.ToString()].Value;
+        }
+    }
+}
