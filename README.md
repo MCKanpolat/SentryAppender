@@ -1,4 +1,4 @@
-SentryAppender
+SentryAppender.Core
 =============
 
 [log4net](http://logging.apache.org/log4net/) appender to send errors to [Sentry](http://www.getsentry.com/).
@@ -11,7 +11,7 @@ Configure in app.config:
 		<level value="DEBUG" />
 		<appender-ref ref="SentryAppender" />
 	</root>
-	<appender name="SentryAppender" type="SharpRaven.Log4Net.SentryAppender, SharpRaven.Log4Net">
+	<appender name="SentryAppender" type="SharpRaven.Log4Net.Core.SentryAppender, SharpRaven.Log4Net.Core">
 		<DSN value="DSN_FROM_SENTRY_UI" />
 		<Logger value="LOGGER_NAME" />
 		<threshold value="ERROR" />
@@ -21,5 +21,3 @@ Configure in app.config:
 	</appender>
 </log4net>
 ```
-
-To debug issues with events not reaching sentry, turn on log4net logging: http://haacked.com/archive/2006/09/27/Log4Net_Troubleshooting.aspx/
