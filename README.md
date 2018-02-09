@@ -21,3 +21,7 @@ Configure in app.config:
 	</appender>
 </log4net>
 ```
+
+Install-Package SharpRaven.Log4Net.Core
+
+dotnet add package SharpRaven.Log4Net.Core
