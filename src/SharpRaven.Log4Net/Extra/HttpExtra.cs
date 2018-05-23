@@ -132,9 +132,8 @@ namespace SharpRaven.Log4Net.Core.Extra
                     var assembly = Assembly.Load(assemblyName);
                     assemblies.Add(assembly);
                 }
-                catch (BadImageFormatException)
-                {
-                }
+                catch
+                { }
             }
 
             return assemblies.ToArray();
@@ -142,20 +141,17 @@ namespace SharpRaven.Log4Net.Core.Extra
 
         private static dynamic GetHttpContext()
         {
-            var systemWeb = GetAssemblies()
-                                  .FirstOrDefault(assembly => assembly.FullName.StartsWith("System.Web"));
+            var systemWeb = GetAssemblies().FirstOrDefault(assembly => assembly.FullName.StartsWith("System.Web"));
 
             if (systemWeb == null)
                 return null;
 
-            var httpContextType = systemWeb.GetExportedTypes()
-                                           .FirstOrDefault(type => type.Name == "HttpContext");
+            var httpContextType = systemWeb.GetExportedTypes().FirstOrDefault(type => type.Name == "HttpContext");
 
             if (httpContextType == null)
                 return null;
 
-            var currentHttpContextProperty = httpContextType.GetProperty("Current",
-                                                                         BindingFlags.Static | BindingFlags.Public);
+            var currentHttpContextProperty = httpContextType.GetProperty("Current", BindingFlags.Static | BindingFlags.Public);
 
             if (currentHttpContextProperty == null)
                 return null;
