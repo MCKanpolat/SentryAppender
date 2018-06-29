@@ -20,7 +20,7 @@ namespace SharpRaven.Log4Net.Core
     {
         protected IRavenClient RavenClient;
         public string DSN { get; set; }
-
+        public string Environment { get; set; }
         public bool CompressionEnabled { get; set; }
         public string Logger { get; set; }
         private readonly IList<SentryTag> _tagLayouts = new List<SentryTag>();
@@ -38,6 +38,7 @@ namespace SharpRaven.Log4Net.Core
                 {
                     Logger = Logger,
                     Compression = CompressionEnabled,
+                    Environment = Environment,
 
                     // If something goes wrong when sending the event to Sentry, make sure this is written to log4net's internal
                     // log. See <add key="log4net.Internal.Debug" value="true"/>

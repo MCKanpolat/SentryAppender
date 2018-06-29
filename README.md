@@ -13,6 +13,7 @@ Configure in app.config:
 	</root>
 	<appender name="SentryAppender" type="SharpRaven.Log4Net.Core.SentryAppender, SharpRaven.Log4Net.Core">
 		<DSN value="DSN_FROM_SENTRY_UI" />
+		<Environment value="Production" />
 		<Logger value="LOGGER_NAME" />
 		<threshold value="ERROR" />
 		<layout type="log4net.Layout.PatternLayout">
