@@ -28,11 +28,11 @@
 
     <ItemGroup>
         <PackageReference Include="log4net" Version="2.0.8" />
-        <PackageReference Include="SharpRaven" Version="2.2.0" />
+        <PackageReference Include="SharpRaven" Version="2.4.0" />
     </ItemGroup>
 
     <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-        <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.3" />
+        <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     </ItemGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
