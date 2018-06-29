@@ -3,14 +3,47 @@
     <PropertyGroup>
         <RepositoryUrl>https://github.com/MCKanpolat/SentryAppenderCore</RepositoryUrl>
         <Version>1.0.5</Version>
-        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+        <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+        <Reference Include="mscorlib" />
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="Microsoft.CSharp" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Web" />
+        <Reference Include="System.Drawing" />
+        <Reference Include="System.Security" />
+        <Reference Include="System.Xml" />
+        <Reference Include="System.Configuration" />
+    </ItemGroup>
+    <PropertyGroup Condition=" '$(TargetFramework)' == 'net45'">
+        <DefineConstants>NET45</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="log4net" Version="2.0.8" />
-        <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.3" />
         <PackageReference Include="SharpRaven" Version="2.2.0" />
     </ItemGroup>
 
-</Project>
+    <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+        <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.0.3" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+
+
+
+ </Project>

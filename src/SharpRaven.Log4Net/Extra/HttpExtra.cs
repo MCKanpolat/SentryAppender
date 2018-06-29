@@ -4,7 +4,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
+ 
 
 namespace SharpRaven.Log4Net.Core.Extra
 {
@@ -29,8 +29,8 @@ namespace SharpRaven.Log4Net.Core.Extra
             return new HttpExtra(context);
         }
 
-        public object Request { get; private set; }
-        public object Response { get; private set; }
+        public object Request { get; }
+        public object Response { get; }
 
 
         private object GetResponse()
@@ -128,8 +128,7 @@ namespace SharpRaven.Log4Net.Core.Extra
             {
                 try
                 {
-                    var assemblyName = AssemblyLoadContext.GetAssemblyName(module.FileName);
-                    var assembly = Assembly.Load(assemblyName);
+                    var assembly = Assembly.LoadFile(module.FileName);
                     assemblies.Add(assembly);
                 }
                 catch
